@@ -17,7 +17,7 @@ export function request(url, data) {
         var res = http_response.data;
         if (res.success) {
           // console.log("正确")
-          return resolve && resolve(res.data)
+          return resolve && resolve(res)
         }
         if (res.message == -1) {
           console.log("未登录,跳转登录页")
@@ -69,7 +69,7 @@ export function requestGet(url, data) {
         var res = http_response.data;
         if (res.success) {
           console.log("正确")
-          return resolve && resolve(res.data)
+          return resolve && resolve(res)
         }
         if (res.message == -1) {
           console.log("未登录,跳转登录页")

@@ -343,7 +343,21 @@ export default {
       var url = 'WelAdmin/employee_list'
       var data = { name: this.search2 }
       requestGet(url, data).then(res => {
-        this.tableData = res.info
+        var tableArr = []
+        for(var i = 0, len = res.info.length; i < len; i++){
+          var table = {
+            birthday: res.info[i].birthday,
+            email: res.info[i].e_mail,
+            gender: res.info[i].sex,
+            mobile: res.info[i].phone,
+            name: res.info[i].name,
+            department: res.info[i].depart,
+            id: res.info[i].id
+          }
+          tableArr.push(table)
+        }
+        console.log(tableArr)
+        this.tableData = tableArr
         this.total = res.total
       })
     },
@@ -355,7 +369,7 @@ export default {
       console.log(this.level)
       this.dialogFormVisible1 = true
       // 添加子部门 下拉列表默认显示左侧点击的部门,也就是当前选择的部门 id
-      this.selectedOptions = this.currentDepartmentId[0]
+      this.selectedOptions = this.currentDepartmentId[0] || ''
       this.departmentInfo({})
     },
     // 批量导入
@@ -374,17 +388,6 @@ export default {
       this.addEmployees = 1
       var data = {}
       this.employeesInfo(data)
-    },
-    // 搜索时自动返回的提示
-    querySearch(queryString, cb) {
-      console.log(queryString)
-      console.log(cb)
-      var restaurants = this.restaurants
-      var results = queryString
-        ? restaurants.filter(this.createFilter(queryString))
-        : restaurants
-      // 调用 callback 返回建议列表的数据
-      cb(results)
     },
     // 查看 table 列表
     handleClick(row) {
@@ -431,7 +434,7 @@ export default {
       var data = {
         id: row.id
       }
-      this.employeesInfo(data, row)
+      this.employeesInfo(data)
     },
     // 停用 / 导出按钮
     stopBtn(e) {
@@ -452,7 +455,7 @@ export default {
     },
     // 弹出框表单提交 编辑信息
     confirmSubmit(form) {
-      console.log('弹出框确认 编辑信息')
+      console.log('弹出框提交 编辑(员工)信息')
       console.log(form)
       // 判断 员工表单提交是 添加 还是 编辑,1是添加,0是编辑
       if (this.addEmployees == 1) {
@@ -548,11 +551,12 @@ export default {
       this.dialogFormVisible1 = false
     },
     // 添加/编辑 员工信息 (弹出对话框)
-    employeesInfo(data, row) {
+    employeesInfo(data) {
       var url = 'WelAdmin/employee_info'
       request(url, data).then(res => {
         console.log('res')
         console.log(res)
+        // 获取部门下拉列表
         var list = []
         for (var i = 0, len = res.depart.length; i < len; i++) {
           var data = {
@@ -563,9 +567,18 @@ export default {
         }
         console.log(list)
         this.options = list || []
+        // 默认表单 添加为空, 编辑为返回数据
+        var form = {
+          name: res.info.name,
+          birthday: res.info.birthday,
+          email: res.info.e_mail,
+          entryDate: res.info.entry_time,
+          mobile: res.info.phone,
+          position: res.info.postition,
+          gender: res.info.sex
+        }
+        this.form = form
       })
-      var row = row || {}
-      this.form = row
     },
     // 添加/编辑 员工信息 (弹出对话框 确定)
     employeesInfoSubmit(data) {
@@ -585,7 +598,7 @@ export default {
         console.log(res)
         console.log('添加/编辑员工信息成功')
         // 重新请求 表单列表
-        var data = { page: this.page }
+        var data = { page: this.page - 1}
         this.changeData(data)
       })
       this.dialogFormVisible = false
@@ -595,7 +608,7 @@ export default {
       // 请求 部门tree
       var url = 'WelAdmin/depart_list'
       request(url, {}).then(res => {
-        this.tree = res
+        this.tree = res.data
       })
     },
     // 请求右侧 表格 列表  参数: page页this.page
@@ -604,7 +617,7 @@ export default {
       var url = 'WelAdmin/employee_list'
       requestGet(url, data).then(res => {
         console.log(res)
-        var list = res.info
+        var list = res.data
         this.total = res.total
         var table = []
         for (var i = 0, len = list.length; i < len; i++) {

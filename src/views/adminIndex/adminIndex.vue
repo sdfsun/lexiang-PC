@@ -5,13 +5,13 @@
       <el-col :span="5" class="header-item">
         <img src="../../assets/logo.png" @click="navigateIndex" class="logo-img" alt="logo" />
       </el-col>
-      <el-col :span="4" :offset="2" class="header-item">
+      <el-col :span="4" :offset="2" :class="['header-item', activeClass === 1? 'active-class': '']" >
         <div @click="navigateMsg">通讯录管理</div>
       </el-col>
-      <el-col :span="4" class="header-item">
+      <el-col :span="4" :class="['header-item', activeClass === 2? 'active-class': '']">
         <div @click="navigateIntegral">积分管理</div>
       </el-col>
-      <el-col :span="4" class="header-item">
+      <el-col :span="4" :class="['header-item', activeClass === 3? 'active-class': '']">
         <div @click="navigateSetting">设置</div>
       </el-col>
       <el-col :span="3" :offset="1" class="header-item">
@@ -91,37 +91,44 @@ export default {
         departmentNum: '100',
         useNum: '200',
         img: '../../assets/logo.png'
-      }
+      },
+      // nav 控件
+      activeClass: 0
     }
   },
   methods: {
     // 点击logo导航到admin首页
     navigateIndex() {
       console.log('跳转到管理员首页')
+      this.activeClass = 0
       this.$router.push({ name: 'adminIndex' })
     },
     // 点击通讯 导航到通讯页面
     navigateMsg() {
       console.log('导航奥通讯页面')
+      this.activeClass = 1      
       this.$router.push({ name: 'addressBook' })
     },
     // 点击通讯 导航到积分页面
     navigateIntegral() {
       console.log('导航奥积分页面')
+      this.activeClass = 2      
       this.$router.push({ name: 'amount' })
     },
     // 点击通讯 导航到设置页面
     navigateSetting() {
       console.log('导航奥设置页面')
+      this.activeClass = 3      
       this.$router.push({ name: 'setting' })
     },
     // 点击退出登录 返回登录页面
     navigateLogin() {
       console.log('导航到登录页面')
-      this.$router.push({ name: 'login' })      
-      // var url = 'WelPub/logout'
-      // request(url, {}).then(res => {
-      // })
+      
+      var url = 'WelPub/logout'
+        request(url, {}).then(res => {
+      })
+      // this.$router.push({ name: 'login' })      
     }
   },
   mounted() {
@@ -169,6 +176,9 @@ export default {
 }
 .header-item div:hover {
   color: @color-text;
+}
+.active-class{
+  color: #000;
 }
 .header-btn {
   width: 100%;

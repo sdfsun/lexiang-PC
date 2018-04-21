@@ -204,7 +204,7 @@ export default {
       }
       request(url, data).then(res => {
         console.log(res)
-        this.validation.validationImgPath = res.img + '?' + Math.random()
+        this.validation.validationImgPath = res.data.img + '?' + Math.random()
       })
 
       this.dialogVisible = true
@@ -263,7 +263,7 @@ export default {
       }
       request(url, data).then(res => {
         console.log(res)
-        this.validation.validationImgPath = res.img + '?' + Math.random()
+        this.validation.validationImgPath = res.data.img + '?' + Math.random()
       })
     },
     // 发送信息后的间隔时间 事件

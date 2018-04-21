@@ -197,7 +197,7 @@ export default {
         // 添加管理员 选择的员工
         selectEmp: '请选择',
         // 选择员工的电话
-        mobile: 0,
+        mobile: '',
         // 选择员工的id
         id: 0
       }
@@ -221,6 +221,7 @@ export default {
     // 取消按钮
     cancelForm() {
       console.log('取消修改')
+      console.log(this)
     },
     // 修改表单
     submitForm(data) {
@@ -241,6 +242,8 @@ export default {
       }
       this.loadingInfo(data, prompt)
       function prompt() {
+        console.log('再次发送请求表单')
+        that.loadingInfo({})
         that.$message({
           message: '修改成功',
           type: 'success'
@@ -314,10 +317,11 @@ export default {
           mobile: res.phone,
           code: res.company_code
         }
+        console.log(data)
         this.formInfo = data
+        // 成功提示 回调函数,只有修改时候有,进入页面时没有
+        if (prompt) prompt()
       })
-      // 成功提示 回调函数,只有修改时候有,进入页面时没有
-      if (prompt) prompt()
     },
     // 添加管理员 (弹出对话框)
     addAdminDialog(data) {
@@ -383,6 +387,7 @@ export default {
       if(val === false){
         // 清空选择框内容
         this.adminData.selectEmp = '请选择'
+        this.adminData.mobile = ''
       }
     }
   }
@@ -469,6 +474,7 @@ export default {
 }
 .info-name {
   line-height: 50px;
+  height: 50px;
 }
 .form-btn {
   width: 100px;

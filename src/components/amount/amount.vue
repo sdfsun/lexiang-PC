@@ -48,13 +48,15 @@
                 <!-- 积分消费明细 -->
                 <el-col class="main-item" v-show="!isShow" :span="22" :offset="1">
                     <el-table :data="consumeTable" style="width: 100%" height="480">
-                        <el-table-column prop="date" label="日期" width="274" sortable>
+                        <el-table-column prop="date" label="日期" width="200" sortable>
                         </el-table-column>
-                        <el-table-column prop="integral" label="积分" width="274" sortable>
+                        <el-table-column prop="name" label="员工姓名" width="200">
                         </el-table-column>
-                        <el-table-column prop="bp" label="收支" width="274" :filters="[{ text: '收入', value: '收入' }, { text: '支出', value: '支出' }]" :filter-method="filterHandler">
+                        <el-table-column prop="mobile" label="手机号" width="200">
                         </el-table-column>
-                        <el-table-column prop="note" label="备注" width="200">
+                        <el-table-column prop="order" label="订单号" width="220">
+                        </el-table-column>
+                        <el-table-column prop="integral" label="积分" width="200" sortable>
                         </el-table-column>
                     </el-table>
                 </el-col>
@@ -62,7 +64,7 @@
             <!-- 底部 分页 -->
             <el-row>
                 <el-col :span="16" :offset="4" class="footer">
-                    <el-pagination background @current-change="handleCurrentChange" :page-size="10" layout="prev, pager, next, jumper" :total="1000">
+                    <el-pagination background @current-change="handleCurrentChange" :page-size="pageSize" layout="prev, pager, next, jumper" :total="total">
                     </el-pagination>
                 </el-col>
             </el-row>
@@ -106,6 +108,7 @@
 </template>
 
 <script>
+import { request } from 'common/js/request'
 export default {
   data() {
     return {
@@ -133,7 +136,7 @@ export default {
       // tab 内容切换控件
       isShow: true,
       // 查询时间
-      data: '',
+      data: [],
       // 企业收支明细 表格
       bpTable: [
         {
@@ -165,29 +168,38 @@ export default {
       consumeTable: [
         {
           date: '2016-06-13',
-          integral: '777',
-          bp: '收入',
-          note: '不要辣椒'
+          name: '唐马儒',
+          mobile: '133888883333',
+          order: '20180418102459',
+          integral: '888'
         },
         {
-          date: '2016-12-04',
-          integral: '333',
-          bp: '支出',
-          note: '不要酒'
+          date: '2016-06-13',
+          name: '唐马儒',
+          mobile: '133888883333',
+          order: '20180418102459',
+          integral: '888'
         },
         {
-          date: '2016-11-21',
-          integral: '666',
-          bp: '收入',
-          note: '不要烟'
+          date: '2016-06-13',
+          name: '唐马儒',
+          mobile: '133888883333',
+          order: '20180418102459',
+          integral: '888'
         },
         {
-          date: '2016-05-19',
-          integral: '999',
-          bp: '支出',
-          note: '不要糖'
-        }
-      ]
+          date: '2016-06-13',
+          name: '唐马儒',
+          mobile: '133888883333',
+          order: '20180418102459',
+          integral: '888'
+        },
+      ],
+      // 表格 总数
+      total: 111,
+      // 当前页 每页显示条数
+      page: 1,
+      pageSize: 10
     }
   },
   methods: {
@@ -202,6 +214,13 @@ export default {
     },
     btn3() {
       console.log('btn3 - 查看')
+      if( this.isShow === true){
+        var data = { data: this.data}
+        this.requestDetails(data)
+      }else{
+        var data = { data: this.data}
+        this.requestDetails(data)
+      }
     },
     // tab切换 样式控制函数
     isActiveStyle(e) {
@@ -213,16 +232,21 @@ export default {
         this.tab.isActive1 = true
         this.tab.isActive2 = false
         this.isShow = true
+        this.data = []
       } else if (child === '消费积分明细') {
         this.tab.isActive1 = false
         this.tab.isActive2 = true
         this.isShow = false
+        this.data = []        
+        // 请求 积分消费明细
+        this.requestConsumption()
       }
     },
     // 改变时间事件
     changeData(e) {
       console.log('改变时间')
       console.log(e)
+      this.data = e
     },
     // 企业收支明细表格过滤
     filterHandler(value, row, column) {
@@ -231,11 +255,13 @@ export default {
     },
     // 改变页数 触发
     handleCurrentChange(e) {
-      console.log(e)
       console.log('改变页数')
+      console.log(e)
+      this.page = e
     },
     // 提交表单(充值积分)
     submitForm(topUpForm) {
+      console.log('提交-充值积分')
       console.log(topUpForm)
       var promptForm = this.promptForm
       if (
@@ -255,6 +281,17 @@ export default {
         alert('请填写正确表单')
       } else {
         console.log('成功提交表单')
+
+        var url = 'WelAdmin/pay_point'
+        var data = { 
+          phone: topUpForm.mobile,
+          name: topUpForm.name,
+          note: topUpForm.note,
+          topUp: topUpForm.topUp
+        }
+        request(url, data).then( res => {
+          console.log(res)
+        })
         this.dialogFormVisible = false
         // 还需要刷新页面
       }
@@ -287,7 +324,26 @@ export default {
       } else {
         this.promptForm.topUp0 = false
       }
+    },
+    // 请求 企业收支明细 
+    requestDetails(data){
+      var url = 'WelAdmin/points_record'
+      var data = data || {}
+      request(url, data).then( res => {
+        console.log(res)
+      })
+    },
+    // 请求 积分消费明细 
+    requestConsumption(data){
+      var url = 'WelAdmin/record_detail'
+      var data = data || {}
+      request(url, data).then( res => {
+        console.log(res)
+      })
     }
+  },
+  mounted(){
+    this.requestDetails()
   }
 }
 </script>

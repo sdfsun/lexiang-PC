@@ -23,7 +23,7 @@
                       <span>{{item.label}}</span>
                       <span>部门</span>
                     </div>
-                    <div v-for="(item, index) in employees" class="source-list" type="employees"  @click="sourceClick(2, index,item.id)">
+                    <div v-for="(item, index) in employees" class="source-list" v-show="showNode(ygSearch, item.name)" type="employees" @click="sourceClick(2, index,item.id)">
                       <span>{{item.name}}</span>
                       <span>员工</span>
                     </div>
@@ -73,6 +73,7 @@
             </el-input>
           </el-col>
           <el-col :span="8" class="footer-top-last">共计 0 积分，当前可用 100 积分</el-col>
+          <el-col class="ff-prompt">{{ffPrompt}}</el-col> 
         </el-row>
         <el-row>
           <el-col :span="2">备注信息：</el-col>
@@ -120,6 +121,8 @@ export default {
       ffInput: '',
       // 备注信息
       bzInput: '',
+      // 发放积分提示
+      ffPrompt: '',
       // 底部 分页 总条数
       total: 0,
       // 当前页 每页显示条数
@@ -135,8 +138,29 @@ export default {
       var url = 'WelAdmin/points_dist'
       var data = { depart_id: data.id }
       requestGet(url, data).then(res => {
-        this.department = res.depart
-        this.employees = res.staff
+        console.log(res)
+        // var arr = res.depart
+        // for(var i = 0, len = arr.length; i < len; i++){
+        //   for(var j = 0, l = this.department.length; j < l; j++){
+        //     if( arr[i].id === this.department[j].id ){
+        //       arr.splice(i,1)
+        //     }
+        //   }
+        // }
+        // this.department = this.department.concat(arr)
+
+        // var arr1 = [].concat(res.staff)
+        // for(var k = 0, leng = arr1.length; k < leng; k++){
+        //   for(var n = 0, le = this.employees.length; n < le; n++){
+        //     if( arr1[k].id === this.employees[n].id ){
+        //       arr1.splice(k,1)
+        //     }
+        //   }
+        // }
+        // this.employees = this.employees.concat(arr1)
+        this.department = this.department.concat(res.depart)
+        this.employees = this.employees.concat(res.staff)
+        console.log('左侧完成')
       })
     },
     // 左侧 穿梭框 点击
@@ -145,11 +169,18 @@ export default {
       console.log(type) // type == 1是部门, type == 2 是员工
       console.log(index)
       console.log(id)
-      if( type === 1 ){
+      if (type === 1) {
         var data = this.department.splice(index, 1)
+        for (var i = 0, len = this.targetDepartment.length; i < len; i++) {
+          // 如果 右边有这个,就直接结束函数不执行下面的了
+          if (this.targetDepartment[i].id === data[0].id) return
+        }
         this.targetDepartment.push(data[0])
-      }else{
-        var data = this.employees.splice(index, 1)
+      } else {
+        var data = this.employees.splice(index, 1)  
+        for (var i = 0, len = this.targetEmployees.length; i < len; i++) {
+          if (this.targetEmployees[i].id === data[0].id) return
+        }
         this.targetEmployees.push(data[0])
       }
     },
@@ -159,10 +190,11 @@ export default {
       console.log(type)
       console.log(index)
       console.log(id)
-      if( type === 1 ){
+      // 1: 部门.  2: 员工
+      if (type === 1) {
         var data = this.targetDepartment.splice(index, 1)
         this.department.push(data[0])
-      }else{
+      } else {
         var data = this.targetEmployees.splice(index, 1)
         this.employees.push(data[0])
       }
@@ -170,16 +202,38 @@ export default {
     // 全部添加
     allAdd() {
       console.log('全部添加')
+      // 部门 添加
+      for (var k = 0, le = this.targetDepartment.length; k < le; k++) {
+        for(var n = 0, leng = this.employees.length; n < leng; n++){
+          if (this.targetDepartment[k].id === this.department[n].id) {
+            this.department.splice(n,1)
+            n = n - 1
+          }
+        }
+      }
+      this.targetDepartment = this.targetDepartment.concat(this.department)
+      this.department = []
+      // 员工 添加
+      for (var i = 0, len = this.targetEmployees.length; i < len; i++) {
+        for(var j = 0, l = this.employees.length; j < l; j++){
+          if (this.targetEmployees[i].id === this.employees[j].id) {
+            this.employees.splice(j,1)
+            j = j - 1
+          }
+        }
+      }
+      this.targetEmployees = this.targetEmployees.concat(this.employees)
+      this.employees = []
     },
     // 查看明细 跳转checkDetail页面
     checkDetail() {
       console.log('查看明细')
       var departmentIdArr = []
       var employeesIdArr = []
-      for(var i = 0, len = this.targetDepartment.length; i < len; i++){
+      for (var i = 0, len = this.targetDepartment.length; i < len; i++) {
         departmentIdArr.push(this.targetDepartment[i].id)
       }
-      for(var i = 0, len = this.targetEmployees.length; i < len; i++){
+      for (var i = 0, len = this.targetEmployees.length; i < len; i++) {
         employeesIdArr.push(this.targetEmployees[i].id)
       }
       var url = 'WelAdmin/details'
@@ -187,20 +241,47 @@ export default {
         depart: departmentIdArr,
         employees: employeesIdArr
       }
-      request(url, data).then( res => {
+      request(url, data).then(res => {
         this.childrenList = res
+        // 父级页面隐藏,跳转子页面
+        this.parentShow = false
+        this.$router.push({ name: 'checkDetail' })
       })
-      // 父级页面隐藏,跳转子页面
-      this.parentShow = false
-      this.$router.push({ name: 'checkDetail'})
     },
     // 全部移除
     allDelete() {
       console.log('全部移除')
+      this.department = this.department.concat(this.targetDepartment)
+      this.targetDepartment = []
+      this.employees = this.employees.concat(this.targetEmployees)
+      this.targetEmployees = []
     },
     // 发放
     issue() {
       console.log('发放')
+      if(this.ffInput <= 0) return this.ffPrompt = "请填入正确发放积分"
+      this.ffPrompt = "" //取消 发放积分提示
+      // 把 部门和员工id 取成数组,用data发送到后台
+      var departIdArr = [] 
+      for(var i = 0, len = this.targetDepartment.length; i < len; i++){
+        departIdArr.push(this.targetDepartment[i].id)
+      }
+      var empIdArr = [] 
+      for(var j = 0, l = this.targetEmployees.length; j < l; j++){
+        empIdArr.push(this.targetEmployees[j].id)
+      }
+      var data = { 
+        // 放放积分和备注
+        issue: this.ffInput,
+        note: this.bzInput,
+        depart_id: departIdArr,
+        emp_id: empIdArr
+      }
+      console.log(data)
+      var url = 'WelAdmin/points_dist'
+      request(url, data).then( res => {
+        console.log(res)
+      })
     },
     // 接收 子组件传过来的值 让自己显示
     isShow(data) {
@@ -222,6 +303,13 @@ export default {
         this.tree = res
         console.log(res)
       })
+    },
+    // 搜索员工显示隐藏
+    showNode(val, name){
+      console.log(val)
+      console.log(name)
+      if(!val) return true
+      return name.indexOf(val) !== -1
     }
   },
   mounted() {
@@ -374,6 +462,11 @@ export default {
   & button {
     width: 100%;
   }
+}
+.ff-prompt{
+  font-size: @font-size-small-s;
+  line-height: 14px;
+  color: red;
 }
 </style>
 
